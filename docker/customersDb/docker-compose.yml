@@ -1,0 +1,20 @@
+version: '3.1'
+services:
+  db:
+    container_name: customersDb
+    image: mysql:latest
+    restart: always
+    environment:
+      - MYSQL_ROOT_PASSWORD=root
+    ports:
+      # just if you also want to access it directly from you host
+      # node neede for phpmyadmin
+      - "3307:3306"
+  phpmyadmin:
+    container_name: customersAdmin
+    restart: always
+    image: phpmyadmin/phpmyadmin
+    depends_on:
+      - db
+    ports:
+      - "8082:80"
