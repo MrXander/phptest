@@ -3,101 +3,74 @@
 <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
-    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/css/bootstrap.min.css"
-          integrity="sha384-Gn5384xqQ1aoWXA+058RXPxPg6fy4IWvTNh0E263XmFcJlSAwiGgFAW/dAiS6JXm" crossorigin="anonymous">
-    <link rel="stylesheet" href="http://mozilla.github.io/mofo-bootstrap/dest/css/mofo-bootstrap.css">
+
+    <link rel="stylesheet" href="https://unpkg.com/element-ui/lib/theme-chalk/index.css">
+
     <script src="https://cdn.jsdelivr.net/npm/vue"></script>
+    <script src="https://unpkg.com/element-ui/lib/index.js"></script>
 
     <title>Vk test</title>
 </head>
 <body>
 <div id="app" class="container">
-    <div class="row">
-        <div class="col-sm-8"></div>
-        <div class="col-sm-4">Logged as: </div>
-    </div>
+    <el-container style="height: 500px;">
+        <el-container>
+            <el-header style="text-align: right; font-size: 12px">
+<!--                <el-dropdown>-->
+<!--                    -->
+<!--                    <el-dropdown-menu slot="dropdown">-->
+<!--                        <el-dropdown-item>Change role</el-dropdown-item>-->
+<!--                    </el-dropdown-menu>-->
+<!--                </el-dropdown>-->
+                <span>Logged as: {{ loggedAs }}</span>
+                <el-button type="default" icon="el-icon-setting" size="mini" @click="showModal"></el-button>
 
-    <div class="row">
-        <div class="col">
+            </el-header>
 
-        </div>
-    </div>
-    <div class="row">
-        <div class="col-sm">
-            #
-        </div>
-        <div class="col-sm">
-            Order title
-        </div>
-        <div class="col-sm">
-            Customer
-        </div>
-        <div class="col-sm">
-            Action
-        </div>
-    </div>
-    <template v-for="order in orders">
-        <div class="row">
-            <div class="col-sm">
-                {{order.id}}
-            </div>
-            <div class="col-sm">
-                {{order.title}}
-            </div>
-            <div class="col-sm">
-                {{order.customer}}
-            </div>
-            <div class="col-sm">
-                {{order.customer}}
-            </div>
-        </div>
-    </template>
+            <el-main>
+                <el-table :data="orders">
+                    <el-table-column prop="id" label="#" width="30">
+                    </el-table-column>
+                    <el-table-column prop="title" label="Order title" width="120">
+                    </el-table-column>
+                    <el-table-column prop="customer" label="Customer" width="140">
+                    </el-table-column>
+                    <el-table-column label="Action" width="100">
+                        <template slot-scope="scope">
+                            <el-button type="text" size="small" v-if="loggedAs == loggedAsCustomer">Take order
+                            </el-button>
+                            <el-button type="text" size="small" v-else>Place order</el-button>
+                        </template>
+                    </el-table-column>
+                </el-table>
+            </el-main>
+        </el-container>
+    </el-container>
 
-    <modal></modal>
-    <button type="button" class="btn btn-outline-primary" data-toggle="modal" data-target=".modal">
-        Select a role
-    </button>
+    <!-- template for the modal component -->
+    <el-dialog title="Choose your destiny" :visible.sync="modalVisible" width="30%" :before-close="handleClose">
+        <span>I want to login as:</span>
+        <span slot="footer" class="dialog-footer">
+    <el-button type="primary" @click="logAsCustomer">Customer</el-button>
+    <el-button type="primary" @click="logAsContractor">Contractor</el-button>
+  </span>
+    </el-dialog>
+
 </div>
 
-
-
-<template id="bs-modal">
-<div id="role-modal" class="modal" tabindex="-1" role="dialog">
-    <div class="modal-dialog" role="document">
-        <div class="modal-content">
-            <div class="modal-header">
-                <h5 class="modal-title">Choose a role</h5>
-                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
-                    <span aria-hidden="true">&times;</span>
-                </button>
-            </div>
-            <div class="modal-body">
-                <p>Choose a role: customer or contractor</p>
-            </div>
-            <div class="modal-footer">
-                <button type="button" class="btn btn-primary" data-dismiss="modal">Customer</button>
-                <button type="button" class="btn btn-secondary" data-dismiss="modal">Contractor</button>
-            </div>
-        </div>
-    </div>
-</div>
-</template>
 <script>
-    Vue.component('modal', {
-        template: '#bs-modal',
-        data: function () {
-            console.log("### DATA");
-        }
-    });
-
     var app = new Vue({
         el: '#app',
         data: {
-            orders: null
+            orders: null,
+            loggedAs: 'customer',
+            modalVisible: true,
+            loggedAsCustomer: 'customer',
+            loggedAsContractor: 'contractor'
+
         },
         created: function () {
             this.fetchData();
-            this.showModal();
         },
         methods: {
             fetchData: function () {
@@ -110,10 +83,30 @@
                 };
                 xhr.send();
             },
+            takeOrder: function () {
+
+            },
+            placeOrder: function () {
+
+            },
+            logAsCustomer: function () {
+                this.loggedAs = this.loggedAsCustomer;
+                this.handleClose();
+            },
+            logAsContractor: function () {
+                this.loggedAs = this.loggedAsContractor;
+                this.handleClose();
+            },
+            handleClose: function (done) {
+                this.modalVisible = false;
+                this.$message('Logged as: ' + this.loggedAs);
+                if (done)
+                    done();
+            },
             showModal: function () {
-                //$('#role-modal').show();
-                //console.log("### DATA");
+                this.modalVisible = true;
             }
+    
         }
     })
 </script>
