@@ -1,7 +1,7 @@
 version: '3.1'
 services:
   db:
-    container_name: ordersDb
+    container_name: ordersDbSlave
     image: mysql:latest
     restart: always
     environment:
@@ -9,12 +9,12 @@ services:
     ports:
       # just if you also want to access it directly from you host
       # node neede for phpmyadmin
-      - "3307:3306"
+      - "3308:3306"
   phpmyadmin:
-    container_name: ordersAdmin
+    container_name: ordersAdminSlave
     restart: always
     image: phpmyadmin/phpmyadmin
     depends_on:
       - db
     ports:
-      - "8082:80"
+      - "8083:80"

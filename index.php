@@ -6,25 +6,42 @@
 
     <link rel="stylesheet" href="https://unpkg.com/element-ui/lib/theme-chalk/index.css">
 
+
     <script src="https://cdn.jsdelivr.net/npm/vue"></script>
+    <script src="https://unpkg.com/vuex"></script>
     <script src="https://unpkg.com/element-ui/lib/index.js"></script>
+    <script src="./js/mutation-types.js"></script>
 
     <title>Vk test</title>
 </head>
 <body>
-<div id="app" class="container">
+<script type="text/x-template" id="item-template">
+<!--    <span>bbb {{ model.ruleForm2.pass }} bbbb</span>-->
+        <el-form :model="model.ruleForm2" status-icon :rules="model.rules2" ref="ruleForm2" v-show="model.addOrderFormVisible"
+                 label-width="120px" class="demo-ruleForm">
+            <el-form-item label="Password" prop="pass">
+                <el-input type="password" v-model="model.ruleForm2.pass" auto-complete="off"></el-input>
+            </el-form-item>
+            <el-form-item label="Confirm" prop="checkPass">
+                <el-input type="password" v-model="model.ruleForm2.checkPass" auto-complete="off"></el-input>
+            </el-form-item>
+            <el-form-item label="Age" prop="age">
+                <el-input v-model.number="model.ruleForm2.age"></el-input>
+            </el-form-item>
+            <el-form-item>
+                <el-button type="primary" @click="submitForm('ruleForm2')">Submit</el-button>
+                <el-button @click="resetForm('ruleForm2')">Reset</el-button>
+            </el-form-item>
+        </el-form>
+</script>
+<div id="app">
+    <item :model="test"></item>
+
     <el-container style="height: 500px;">
         <el-container>
             <el-header style="text-align: right; font-size: 12px">
-<!--                <el-dropdown>-->
-<!--                    -->
-<!--                    <el-dropdown-menu slot="dropdown">-->
-<!--                        <el-dropdown-item>Change role</el-dropdown-item>-->
-<!--                    </el-dropdown-menu>-->
-<!--                </el-dropdown>-->
                 <span>Logged as: {{ loggedAs }}</span>
                 <el-button type="default" icon="el-icon-setting" size="mini" @click="showModal"></el-button>
-
             </el-header>
 
             <el-main>
@@ -37,9 +54,11 @@
                     </el-table-column>
                     <el-table-column label="Action" width="100">
                         <template slot-scope="scope">
-                            <el-button type="text" size="small" v-if="loggedAs == loggedAsCustomer">Take order
+                            <el-button type="text" size="small" @click="placeOrder(scope.row)"
+                                       v-if="loggedAs == loggedAsCustomer">Place order
                             </el-button>
-                            <el-button type="text" size="small" v-else>Place order</el-button>
+                            <el-button type="text" size="small" @click="takeOrder(scope.row)" v-else>Take order
+                            </el-button>
                         </template>
                     </el-table-column>
                 </el-table>
@@ -47,27 +66,176 @@
         </el-container>
     </el-container>
 
+
     <!-- template for the modal component -->
     <el-dialog title="Choose your destiny" :visible.sync="modalVisible" width="30%" :before-close="handleClose">
         <span>I want to login as:</span>
         <span slot="footer" class="dialog-footer">
     <el-button type="primary" @click="logAsCustomer">Customer</el-button>
     <el-button type="primary" @click="logAsContractor">Contractor</el-button>
-  </span>
     </el-dialog>
 
 </div>
 
+
 <script>
-    var app = new Vue({
+    const store = new Vuex.Store({
+        state: {
+            // logInfo: {
+            //     loggedAs: 'customer',
+            //     loggedAsCustomer: 'customer',
+            //     loggedAsContractor: 'contractor'
+            // },
+            //modalVisible: true,
+            addOrderFormVisible: false,
+            addOrderData: null
+        },
+        mutations: {
+            // showRoleSelector (state) {
+            //     state.modalVisible = true;
+            // },
+            showAddOrderForm(state) {
+                state.addOrderFormVisible = true;
+            }
+        }
+    });
+
+    Vue.component('item', {
+        template: '#item-template',
+        data: {
+            ruleForm2: {
+                pass: '',
+                checkPass: '',
+                age: ''
+            },
+            rules2: {
+                pass: [
+                    {validator: this.validatePass, trigger: 'blur'}
+                ],
+                checkPass: [
+                    {validator: this.validatePass2, trigger: 'blur'}
+                ],
+                age: [
+                    {validator: this.checkAge, trigger: 'blur'}
+                ]
+            }
+        },
+        props: {
+            model: Object
+        },
+    });
+
+    const addOrderForm = Vue.component('addOrderForm', {
+        template: '#item',
+        data: {
+            ruleForm2: {
+                pass: '',
+                checkPass: '',
+                age: ''
+            },
+            rules2: {
+                pass: [
+                    {validator: this.validatePass, trigger: 'blur'}
+                ],
+                checkPass: [
+                    {validator: this.validatePass2, trigger: 'blur'}
+                ],
+                age: [
+                    {validator: this.checkAge, trigger: 'blur'}
+                ]
+            }
+        },
+        methods: {
+            checkAge(rule, value, callback) {
+                if (!value) {
+                    return callback(new Error('Please input the age'));
+                }
+                setTimeout(() => {
+                    if (!Number.isInteger(value)) {
+                        callback(new Error('Please input digits'));
+                    } else {
+                        if (value < 18) {
+                            callback(new Error('Age must be greater than 18'));
+                        } else {
+                            callback();
+                        }
+                    }
+                }, 1000);
+            },
+            validatePass(rule, value, callback) {
+                if (value === '') {
+                    callback(new Error('Please input the password'));
+                } else {
+                    if (this.ruleForm2.checkPass !== '') {
+                        this.$refs.ruleForm2.validateField('checkPass');
+                    }
+                    callback();
+                }
+            },
+            validatePass2(rule, value, callback) {
+                if (value === '') {
+                    callback(new Error('Please input the password again'));
+                } else if (value !== this.ruleForm2.pass) {
+                    callback(new Error('Two inputs don\'t match!'));
+                } else {
+                    callback();
+                }
+            }
+
+        },
+        computed: {
+            isVisible: function() {
+                return this.$store.state.addOrderFormVisible;
+            }
+        }
+    });
+
+    const app = new Vue({
         el: '#app',
+        //store,
+        //components: {addOrderForm},
         data: {
             orders: null,
             loggedAs: 'customer',
             modalVisible: true,
+            addOrderFormVisible: false,
             loggedAsCustomer: 'customer',
-            loggedAsContractor: 'contractor'
-
+            loggedAsContractor: 'contractor',
+            test: {
+                addOrderFormVisible: false,
+                ruleForm2: {
+                    pass: '',
+                    checkPass: '',
+                    age: ''
+                },
+                rules2: {
+                    pass: [
+                        {validator: this.validatePass, trigger: 'blur'}
+                    ],
+                    checkPass: [
+                        {validator: this.validatePass2, trigger: 'blur'}
+                    ],
+                    age: [
+                        {validator: this.checkAge, trigger: 'blur'}
+                    ]
+                }
+            },
+            ruleForm2: {
+                pass: '',
+                checkPass: '',
+                age: ''
+            },
+            rules2: {
+                pass: [
+                    {validator: this.validatePass, trigger: 'blur'}
+                ],
+                checkPass: [
+                    {validator: this.validatePass2, trigger: 'blur'}
+                ],
+                age: [
+                    {validator: this.checkAge, trigger: 'blur'}
+                ]
+            }
         },
         created: function () {
             this.fetchData();
@@ -76,14 +244,15 @@
             fetchData: function () {
                 var xhr = new XMLHttpRequest();
                 var self = this;
-                xhr.open('GET', '/vktest/orders.php');
+                xhr.open('GET', 'api/orders.php');
                 xhr.onload = function () {
                     self.orders = JSON.parse(xhr.responseText);
                     console.log(self.orders);
                 };
                 xhr.send();
             },
-            takeOrder: function () {
+            takeOrder: function (order) {
+
 
             },
             placeOrder: function () {
@@ -105,20 +274,61 @@
             },
             showModal: function () {
                 this.modalVisible = true;
+            },
+            showAddOrderForm: function () {
+                this.$store.commit('showAddOrderForm')
+            },
+            submitForm(formName) {
+                this.$refs[formName].validate((valid) => {
+                    if (valid) {
+                        alert('submit!');
+                    } else {
+                        console.log('error submit!!');
+                        return false;
+                    }
+                });
+            },
+            resetForm(formName) {
+                this.$refs[formName].resetFields();
+            },
+            checkAge(rule, value, callback) {
+                if (!value) {
+                    return callback(new Error('Please input the age'));
+                }
+                setTimeout(() => {
+                    if (!Number.isInteger(value)) {
+                        callback(new Error('Please input digits'));
+                    } else {
+                        if (value < 18) {
+                            callback(new Error('Age must be greater than 18'));
+                        } else {
+                            callback();
+                        }
+                    }
+                }, 1000);
+            },
+            validatePass(rule, value, callback) {
+                if (value === '') {
+                    callback(new Error('Please input the password'));
+                } else {
+                    if (this.ruleForm2.checkPass !== '') {
+                        this.$refs.ruleForm2.validateField('checkPass');
+                    }
+                    callback();
+                }
+            },
+            validatePass2(rule, value, callback) {
+                if (value === '') {
+                    callback(new Error('Please input the password again'));
+                } else if (value !== this.ruleForm2.pass) {
+                    callback(new Error('Two inputs don\'t match!'));
+                } else {
+                    callback();
+                }
             }
-    
-        }
-    })
-</script>
 
-<script src="https://code.jquery.com/jquery-3.2.1.slim.min.js"
-        integrity="sha384-KJ3o2DKtIkvYIK3UENzmM7KCkRr/rE9/Qpg6aAZGJwFDMVNA/GpGFF93hXpG5KkN"
-        crossorigin="anonymous"></script>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.12.9/umd/popper.min.js"
-        integrity="sha384-ApNbgh9B+Y1QKtv3Rn7W3mgPxhU9K/ScQsAP7hUibX39j7fakFPskvXusvfa0b4Q"
-        crossorigin="anonymous"></script>
-<script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/js/bootstrap.min.js"
-        integrity="sha384-JZR6Spejh4U02d8jOt6vLEHfe/JQGiRRSQQxSfFWpi1MquVdAyjUar5+76PVCmYl"
-        crossorigin="anonymous"></script>
+        }
+    });
+</script>
 </body>
 </html>

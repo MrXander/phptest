@@ -1,7 +1,7 @@
 version: '3.1'
 services:
   db:
-    container_name: customersDb
+    container_name: contractorsDb
     image: mysql:latest
     restart: always
     environment:
@@ -11,7 +11,7 @@ services:
       # node neede for phpmyadmin
       - "3307:3306"
   phpmyadmin:
-    container_name: customersAdmin
+    container_name: contractorsAdmin
     restart: always
     image: phpmyadmin/phpmyadmin
     depends_on:
